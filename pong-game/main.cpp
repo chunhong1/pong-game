@@ -1,6 +1,5 @@
 #include "utils.cpp"
 #include <Windows.h>
-
 global_variable bool running = true;
 
 struct Render_State {
@@ -11,8 +10,11 @@ struct Render_State {
 	int getBufferSize() {return height * width * sizeof(u32);}
 		
 };
+
 global_variable Render_State render_state;
 #include "renderer.cpp"
+#include "platform_common.cpp"
+#include "game.cpp"
 /*
 
 LRESULT is an integer value that your program returns to Windows. It contains your program's response to a particular message. The meaning of this value depends on the message code. 
@@ -82,24 +84,76 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	//retrieves a handle to a device context (DC) for the client area of a specified window or for the entire screen.
 	HDC hdc = GetDC(window);
 
+	Input input;
+
+	float delta_time = 0.016666f;
+	LARGE_INTEGER frame_begin_time;
+	QueryPerformanceCounter(&frame_begin_time);
+	float performance_frequency; 
+	{
+		LARGE_INTEGER perf;
+		QueryPerformanceFrequency(&perf);
+		performance_frequency = (float)(perf.QuadPart);
+	}
+
 	while (running) {
 		
 		//input
 		//ask window for any message
 		//PM_REMOVE wont ask you to remove message so only read message once
 		MSG message;
+
+		//initialise all button to false first
+		for (int i = 0; i < BUTTON_COUNT; i++) {
+			input.buttons[i].changed = false;
+		}
+
 		while (PeekMessage(&message, window, 0, 0, PM_REMOVE)) {
-			TranslateMessage(&message);
-			DispatchMessage(&message);
+
+			switch (message.message) {
+				case WM_KEYUP:
+				case WM_KEYDOWN: {
+					
+					u32 vk_code = (u32)message.wParam; //extracts the virtual key code from the wParam
+
+					/*
+					(1 << 31) is a bitmask that checks the highest bit (bit 31).
+					If the highest bit is not set (i.e., it's 0), is_down is set to true, indicating that the key is currently pressed.
+					If the highest bit is set (i.e., it's 1), is_down is set to false, indicating that the key has been released.
+					*/
+
+					bool is_down = ((message.lParam & (1 << 31)) == 0);
+
+//Macros (code that is specified by a #define) can only have one line by default.
+//If we want the macro to extent to the next line, we end the line with the \ symbols
+#define process_button(b,vk)\
+case vk:{\
+input.buttons[b].is_down = is_down;\
+input.buttons[b].changed = true;\
+}break;
+					switch (vk_code) {
+						process_button(BUTTON_UP, VK_UP);
+						process_button(BUTTON_DOWN, VK_DOWN);
+						process_button(BUTTON_LEFT, VK_LEFT);
+						process_button(BUTTON_RIGHT, VK_RIGHT);
+					}
+					break;
+				}
+				default: {
+					TranslateMessage(&message);
+					DispatchMessage(&message);
+				}
+			}	
 		}
 		
-		//stimulate
-		clear_screen(0xff5500);
-		draw_rect(0, 0, 1, 1, 0x00ff22);
-		draw_rect(30, 30, 5, 5, 0x00ff22);
-		draw_rect(-20, 20, 8, 3, 0x00ff22);
-
+		//simulate
+		simulate_game(&input,delta_time);
+		
 		//render
 		StretchDIBits(hdc, 0, 0, render_state.width, render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmap_info, DIB_RGB_COLORS, SRCCOPY);
+		LARGE_INTEGER frame_end_time;
+		QueryPerformanceCounter(&frame_end_time);
+		delta_time = (float)(frame_end_time.QuadPart - frame_begin_time.QuadPart) / performance_frequency; //get CPU time
+		frame_begin_time = frame_end_time;
 	}
 }
