@@ -6,8 +6,8 @@ struct Button_State {
 enum {
 	BUTTON_UP, //default value is 0 and so on
 	BUTTON_DOWN,
-	BUTTON_LEFT,
-	BUTTON_RIGHT,
+	BUTTON_W,
+	BUTTON_S,
 
 	BUTTON_COUNT //should be the last item
 };

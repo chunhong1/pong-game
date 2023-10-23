@@ -1,5 +1,6 @@
 #include "utils.cpp"
-#include <Windows.h>
+#include <windows.h>
+
 global_variable bool running = true;
 
 struct Render_State {
@@ -12,8 +13,9 @@ struct Render_State {
 };
 
 global_variable Render_State render_state;
-#include "renderer.cpp"
+
 #include "platform_common.cpp"
+#include "renderer.cpp"
 #include "game.cpp"
 /*
 
@@ -126,16 +128,17 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 //Macros (code that is specified by a #define) can only have one line by default.
 //If we want the macro to extent to the next line, we end the line with the \ symbols
+//changed is set to true only if the current is_down is different from the recorded is_down
 #define process_button(b,vk)\
 case vk:{\
+input.buttons[b].changed = is_down != input.buttons[b].is_down;\
 input.buttons[b].is_down = is_down;\
-input.buttons[b].changed = true;\
 }break;
 					switch (vk_code) {
 						process_button(BUTTON_UP, VK_UP);
 						process_button(BUTTON_DOWN, VK_DOWN);
-						process_button(BUTTON_LEFT, VK_LEFT);
-						process_button(BUTTON_RIGHT, VK_RIGHT);
+						process_button(BUTTON_W, 'W');
+						process_button(BUTTON_S, 'S');
 					}
 					break;
 				}
