@@ -38,19 +38,19 @@ aabb_vs_aabb(float p1x, float p1y, float hs1x, float hs1y,
 
 internal void
 simulate_game(Input* input, float dt) {
-	clear_screen(0xff5500);
 	draw_rect(0, 0, arena_half_size_x, arena_half_size_y, 0xffaa33);
+	draw_arena_borders(arena_half_size_x, arena_half_size_y, 0xff5500);
 
 	//player 1
 	float player1_ddp = 0.f; //derivative of player_dp (acceleration)
 	if (is_down(BUTTON_UP)) player1_ddp += 2000;
 	if (is_down(BUTTON_DOWN)) player1_ddp -= 2000;
-
+		
 	//player 2
 	float player2_ddp = 0.f; //derivative of player_dp (acceleration)
 	if (is_down(BUTTON_W)) player2_ddp += 2000;
 	if (is_down(BUTTON_S)) player2_ddp -= 2000;
-
+		
 	simulate_player(&player1_p, &player1_dp, player1_ddp, dt);
 	simulate_player(&player2_p, &player2_dp, player2_ddp, dt);
 
@@ -97,6 +97,6 @@ simulate_game(Input* input, float dt) {
 
 	// Rendering
 	draw_rect(ball_p_x, ball_p_y, ball_half_size, ball_half_size, 0xffffff); //ball
-	draw_rect(-80, player1_p, player_half_size_x, player_half_size_y, 0xff0000); //player1
-	draw_rect(80, player2_p, player_half_size_x, player_half_size_y, 0xff0000); //player2
+	draw_rect(80, player1_p, player_half_size_x, player_half_size_y, 0xff0000); //player1
+	draw_rect(-80, player2_p, player_half_size_x, player_half_size_y, 0xff0000); //player2
 }
