@@ -74,7 +74,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	//create window class
 	WNDCLASS window_class = {};
 	window_class.style = CS_HREDRAW | CS_VREDRAW; //redraw the window horizontally and vertically
-	window_class.lpszClassName = "Gamme Window Class"; //string that identifies the window class (not visible to normal user)
+	window_class.lpszClassName = "Game Window Class"; //string that identifies the window class (not visible to normal user)
 	window_class.lpfnWndProc = WindowProc; //act like an event litsener
 
 	//create register class
@@ -86,7 +86,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	//retrieves a handle to a device context (DC) for the client area of a specified window or for the entire screen.
 	HDC hdc = GetDC(window);
 
-	Input input;
+	Input input = {};
 
 	float delta_time = 0.016666f;
 	LARGE_INTEGER frame_begin_time;
@@ -129,11 +129,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 //Macros (code that is specified by a #define) can only have one line by default.
 //If we want the macro to extent to the next line, we end the line with the \ symbols
 //changed is set to true only if the current is_down is different from the recorded is_down
-#define process_button(b,vk)\
-case vk:{\
+#define process_button(b, vk)\
+case vk: {\
 input.buttons[b].changed = is_down != input.buttons[b].is_down;\
 input.buttons[b].is_down = is_down;\
-}break;
+} break;
 					switch (vk_code) {
 						process_button(BUTTON_UP, VK_UP);
 						process_button(BUTTON_DOWN, VK_DOWN);
@@ -151,7 +151,7 @@ input.buttons[b].is_down = is_down;\
 		
 		//simulate
 		simulate_game(&input,delta_time);
-		
+
 		//render
 		StretchDIBits(hdc, 0, 0, render_state.width, render_state.height, 0, 0, render_state.width, render_state.height, render_state.memory, &render_state.bitmap_info, DIB_RGB_COLORS, SRCCOPY);
 		LARGE_INTEGER frame_end_time;

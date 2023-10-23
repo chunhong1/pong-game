@@ -46,11 +46,6 @@ simulate_game(Input* input, float dt) {
 	if (is_down(BUTTON_UP)) player1_ddp += 2000;
 	if (is_down(BUTTON_DOWN)) player1_ddp -= 2000;
 
-	player1_ddp -= player1_dp * 10.f;
-
-	player1_p = player1_p + player1_dp * dt + player1_ddp * dt * dt * .5f;
-	player1_dp = player1_dp + player1_ddp * dt;
-
 	//player 2
 	float player2_ddp = 0.f; //derivative of player_dp (acceleration)
 	if (is_down(BUTTON_W)) player2_ddp += 2000;
