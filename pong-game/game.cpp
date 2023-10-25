@@ -6,7 +6,8 @@ float player1_p, player2_p; //positiion
 float player1_dp, player2_dp; //derivative of player_p (velocity)
 float arena_half_size_x = 85, arena_half_size_y = 45;
 float player_half_size_x = 2.5, player_half_size_y = 12;
-float ball_p_x, ball_p_y, ball_dp_x = 100, ball_dp_y, ball_half_size = 1;
+float ball_p_x, ball_p_y, ball_dp_x = 130, ball_dp_y, ball_half_size = 1;
+int player1_score, player2_score;
 
 //position,velocity,acceleration,delta time
 internal void
@@ -43,9 +44,19 @@ simulate_game(Input* input, float dt) {
 
 	//player 1
 	float player1_ddp = 0.f; //derivative of player_dp (acceleration)
+#if 0
 	if (is_down(BUTTON_UP)) player1_ddp += 2000;
 	if (is_down(BUTTON_DOWN)) player1_ddp -= 2000;
-		
+#else
+	//this can be hard difficulty
+	//if (ball_p_y > player1_p + 2.f) player1_ddp += 1300;
+	//if (ball_p_y < player1_p - 2.f) player1_ddp -= 1300;
+	//enemy AI
+	//move an amount based on distance if the ball is close
+	player1_ddp = (ball_p_y - player1_p) * 100;
+	if (player1_ddp > 1300) player1_ddp = 1300;
+	if (player1_ddp < -1300) player1_ddp = -1300;
+#endif
 	//player 2
 	float player2_ddp = 0.f; //derivative of player_dp (acceleration)
 	if (is_down(BUTTON_W)) player2_ddp += 2000;
@@ -84,16 +95,20 @@ simulate_game(Input* input, float dt) {
 			ball_dp_y = 0;
 			ball_p_x = 0;
 			ball_p_y = 0;
-			//player1_score++;
+			player1_score++;
 		}
 		else if (ball_p_x - ball_half_size < -arena_half_size_x) {
 			ball_dp_x *= -1;
 			ball_dp_y = 0;
 			ball_p_x = 0;
 			ball_p_y = 0;
-			//player2_score++;
+			player2_score++;
 		}
 	}
+
+	draw_number(player1_score, -10, 40, 1.f, 0xbbffbb);
+	draw_number(player2_score, 10, 40, 1.f, 0xbbffbb);
+
 
 	// Rendering
 	draw_rect(ball_p_x, ball_p_y, ball_half_size, ball_half_size, 0xffffff); //ball
