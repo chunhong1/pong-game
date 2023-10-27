@@ -37,81 +37,116 @@ aabb_vs_aabb(float p1x, float p1y, float hs1x, float hs1y,
 		p1y + hs1y < p2y + hs2y);
 }
 
+enum Gamemode {
+	GM_MENU,
+	GM_GAMEPLAY,
+};
+
+Gamemode current_gamemode;
+int hot_button;
+bool enemy_is_ai;
+
 internal void
 simulate_game(Input* input, float dt) {
 	draw_rect(0, 0, arena_half_size_x, arena_half_size_y, 0xffaa33);
 	draw_arena_borders(arena_half_size_x, arena_half_size_y, 0xff5500);
 
-	//player 1
-	float player1_ddp = 0.f; //derivative of player_dp (acceleration)
-#if 0
-	if (is_down(BUTTON_UP)) player1_ddp += 2000;
-	if (is_down(BUTTON_DOWN)) player1_ddp -= 2000;
-#else
-	//this can be hard difficulty
-	//if (ball_p_y > player1_p + 2.f) player1_ddp += 1300;
-	//if (ball_p_y < player1_p - 2.f) player1_ddp -= 1300;
-	//enemy AI
-	//move an amount based on distance if the ball is close
-	player1_ddp = (ball_p_y - player1_p) * 100;
-	if (player1_ddp > 1300) player1_ddp = 1300;
-	if (player1_ddp < -1300) player1_ddp = -1300;
-#endif
-	//player 2
-	float player2_ddp = 0.f; //derivative of player_dp (acceleration)
-	if (is_down(BUTTON_W)) player2_ddp += 2000;
-	if (is_down(BUTTON_S)) player2_ddp -= 2000;
-		
-	simulate_player(&player1_p, &player1_dp, player1_ddp, dt);
-	simulate_player(&player2_p, &player2_dp, player2_ddp, dt);
+	if (current_gamemode == GM_GAMEPLAY) {
+		//player 1
+		float player1_ddp = 0.f; //derivative of player_dp (acceleration)
 
-	// Simulate Ball
-	{
-		ball_p_x += ball_dp_x * dt;
-		ball_p_y += ball_dp_y * dt;
-
-		if (aabb_vs_aabb(ball_p_x, ball_p_y, ball_half_size, ball_half_size, 80, player1_p, player_half_size_x, player_half_size_y)) {
-			ball_p_x = 80 - player_half_size_x - ball_half_size;
-			ball_dp_x *= -1;
-			ball_dp_y = (ball_p_y - player1_p) * 2 + player1_dp * .75f;
-		}
-		else if (aabb_vs_aabb(ball_p_x, ball_p_y, ball_half_size, ball_half_size, -80, player2_p, player_half_size_x, player_half_size_y)) {
-			ball_p_x = -80 + player_half_size_x + ball_half_size;
-			ball_dp_x *= -1;
-			ball_dp_y = (ball_p_y - player2_p) * 2 + player2_dp * .75f;
+		if (!enemy_is_ai) {
+			if (is_down(BUTTON_UP)) player1_ddp += 2000;
+			if (is_down(BUTTON_DOWN)) player1_ddp -= 2000;
+		}else {
+			//this can be hard difficulty
+			//if (ball_p_y > player1_p + 2.f) player1_ddp += 1300;
+			//if (ball_p_y < player1_p - 2.f) player1_ddp -= 1300;
+			//enemy AI
+			//move an amount based on distance if the ball is close
+			player1_ddp = (ball_p_y - player1_p) * 100;
+			if (player1_ddp > 1300) player1_ddp = 1300;
+			if (player1_ddp < -1300) player1_ddp = -1300;
 		}
 
-		if (ball_p_y + ball_half_size > arena_half_size_y) {
-			ball_p_y = arena_half_size_y - ball_half_size;
-			ball_dp_y *= -1;
-		}
-		else if (ball_p_y - ball_half_size < -arena_half_size_y) {
-			ball_p_y = -arena_half_size_y + ball_half_size;
-			ball_dp_y *= -1;
+		//player 2
+		float player2_ddp = 0.f; //derivative of player_dp (acceleration)
+		if (is_down(BUTTON_W)) player2_ddp += 2000;
+		if (is_down(BUTTON_S)) player2_ddp -= 2000;
+
+		simulate_player(&player1_p, &player1_dp, player1_ddp, dt);
+		simulate_player(&player2_p, &player2_dp, player2_ddp, dt);
+
+		// Simulate Ball
+		{
+			ball_p_x += ball_dp_x * dt;
+			ball_p_y += ball_dp_y * dt;
+
+			if (aabb_vs_aabb(ball_p_x, ball_p_y, ball_half_size, ball_half_size, 80, player1_p, player_half_size_x, player_half_size_y)) {
+				ball_p_x = 80 - player_half_size_x - ball_half_size;
+				ball_dp_x *= -1;
+				ball_dp_y = (ball_p_y - player1_p) * 2 + player1_dp * .75f;
+			}
+			else if (aabb_vs_aabb(ball_p_x, ball_p_y, ball_half_size, ball_half_size, -80, player2_p, player_half_size_x, player_half_size_y)) {
+				ball_p_x = -80 + player_half_size_x + ball_half_size;
+				ball_dp_x *= -1;
+				ball_dp_y = (ball_p_y - player2_p) * 2 + player2_dp * .75f;
+			}
+
+			if (ball_p_y + ball_half_size > arena_half_size_y) {
+				ball_p_y = arena_half_size_y - ball_half_size;
+				ball_dp_y *= -1;
+			}
+			else if (ball_p_y - ball_half_size < -arena_half_size_y) {
+				ball_p_y = -arena_half_size_y + ball_half_size;
+				ball_dp_y *= -1;
+			}
+
+			if (ball_p_x + ball_half_size > arena_half_size_x) {
+				ball_dp_x *= -1;
+				ball_dp_y = 0;
+				ball_p_x = 0;
+				ball_p_y = 0;
+				player1_score++;
+			}
+			else if (ball_p_x - ball_half_size < -arena_half_size_x) {
+				ball_dp_x *= -1;
+				ball_dp_y = 0;
+				ball_p_x = 0;
+				ball_p_y = 0;
+				player2_score++;
+			}
 		}
 
-		if (ball_p_x + ball_half_size > arena_half_size_x) {
-			ball_dp_x *= -1;
-			ball_dp_y = 0;
-			ball_p_x = 0;
-			ball_p_y = 0;
-			player1_score++;
+		draw_number(player1_score, -10, 40, 1.f, 0xbbffbb);
+		draw_number(player2_score, 10, 40, 1.f, 0xbbffbb);
+
+
+		// Rendering
+		draw_rect(ball_p_x, ball_p_y, ball_half_size, ball_half_size, 0xffffff); //ball
+		draw_rect(80, player1_p, player_half_size_x, player_half_size_y, 0xff0000); //player1
+		draw_rect(-80, player2_p, player_half_size_x, player_half_size_y, 0xff0000); //player2
+	}else {
+		if (pressed(BUTTON_LEFT) || pressed(BUTTON_RIGHT) || pressed(BUTTON_A) || pressed(BUTTON_D)) {
+			hot_button = !hot_button;
 		}
-		else if (ball_p_x - ball_half_size < -arena_half_size_x) {
-			ball_dp_x *= -1;
-			ball_dp_y = 0;
-			ball_p_x = 0;
-			ball_p_y = 0;
-			player2_score++;
+
+		if (pressed(BUTTON_ENTER)) {
+			current_gamemode = GM_GAMEPLAY;
+			enemy_is_ai = hot_button ? 0 : 1;
 		}
+
+		//switching the game mode (ui)
+		if (hot_button == 0) {
+			draw_text("SINGLE PLAYER", -80, -10, 1, 0xff0000);
+			draw_text("MULTIPLAYER", 20, -10, 1, 0xaaaaaa);
+		}
+		else {
+			draw_text("SINGLE PLAYER", -80, -10, 1, 0xaaaaaa);
+			draw_text("MULTIPLAYER", 20, -10, 1, 0xff0000);
+		}
+
+		draw_text("PONG GAME", -50, 30, 2, 0xffffff);
+
 	}
-
-	draw_number(player1_score, -10, 40, 1.f, 0xbbffbb);
-	draw_number(player2_score, 10, 40, 1.f, 0xbbffbb);
-
-
-	// Rendering
-	draw_rect(ball_p_x, ball_p_y, ball_half_size, ball_half_size, 0xffffff); //ball
-	draw_rect(80, player1_p, player_half_size_x, player_half_size_y, 0xff0000); //player1
-	draw_rect(-80, player2_p, player_half_size_x, player_half_size_y, 0xff0000); //player2
 }

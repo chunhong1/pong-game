@@ -71,6 +71,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+	ShowCursor(false);
 	//create window class
 	WNDCLASS window_class = {};
 	window_class.style = CS_HREDRAW | CS_VREDRAW; //redraw the window horizontally and vertically
@@ -139,6 +140,11 @@ input.buttons[b].is_down = is_down;\
 						process_button(BUTTON_DOWN, VK_DOWN);
 						process_button(BUTTON_W, 'W');
 						process_button(BUTTON_S, 'S');
+						process_button(BUTTON_A, 'A');
+						process_button(BUTTON_D, 'D');
+						process_button(BUTTON_LEFT, VK_LEFT);
+						process_button(BUTTON_RIGHT, VK_RIGHT);
+						process_button(BUTTON_ENTER, VK_RETURN);
 					}
 					break;
 				}
